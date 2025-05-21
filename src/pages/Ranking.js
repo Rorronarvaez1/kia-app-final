@@ -18,6 +18,7 @@ export default function Ranking() {
     <div>
       <header className="navbar">
         <div className="nav-left">
+          <a href="/dashboard">Dashboard</a>
           <a href="/reporte">Reporte</a>
           <a href="/graficos">Gráficos</a>
           <a href="/ranking">Ranking</a>

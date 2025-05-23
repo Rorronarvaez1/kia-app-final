@@ -15,6 +15,8 @@ const Reporte = () => {
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [ordenCantidad, setOrdenCantidad] = useState("");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const elementosPorPagina = 50;
 
   const toggleArea = (area) => {
     setAreasSeleccionadas((prev) =>
@@ -42,7 +44,6 @@ const Reporte = () => {
     const inicio = fechaInicio ? new Date(fechaInicio) : null;
     const fin = fechaFin ? new Date(fechaFin) : null;
     const areaFila = fila["Area o proceso de generacion"];
-
     return (
       (!inicio || fecha >= inicio) &&
       (!fin || fecha <= fin) &&
@@ -55,6 +56,12 @@ const Reporte = () => {
   } else if (ordenCantidad === "desc") {
     datosFiltrados.sort((a, b) => parseFloat(b["Cantidad generada Ton."]) - parseFloat(a["Cantidad generada Ton."]));
   }
+
+  const totalPaginas = Math.ceil(datosFiltrados.length / elementosPorPagina);
+  const datosPaginados = datosFiltrados.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
+  );
 
   return (
     <div className="page-container">
@@ -76,83 +83,38 @@ const Reporte = () => {
           Filtros ▾
         </button>
 
+        {/* Filtros */}
         {mostrarFiltros && (
           <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, auto)",
-            gap: "10px",
-            justifyContent: "center",
-            marginBottom: "20px"
+            display: "grid", gridTemplateColumns: "repeat(3, auto)", gap: "10px",
+            justifyContent: "center", marginBottom: "20px"
           }}>
+            {/* Fechas */}
             <div style={{ display: "flex", flexDirection: "column" }}>
               <label>Fecha inicio</label>
-              <input
-                type="date"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-                style={{ width: "150px", padding: "5px" }}
-              />
+              <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} style={{ width: "150px", padding: "5px" }} />
               <label>Fecha final</label>
-              <input
-                type="date"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-                style={{ width: "150px", padding: "5px" }}
-              />
+              <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} style={{ width: "150px", padding: "5px" }} />
             </div>
 
+            {/* Áreas */}
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
               <label>Área</label>
-              <button
-                onClick={() => setMostrarDropdown(!mostrarDropdown)}
-                style={{
-                  width: "200px",
-                  padding: "5px",
-                  textAlign: "left",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  backgroundColor: "#fff",
-                  cursor: "pointer"
-                }}
-              >
+              <button onClick={() => setMostrarDropdown(!mostrarDropdown)} style={{ width: "200px", padding: "5px", textAlign: "left", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#fff", cursor: "pointer" }}>
                 Áreas ▾
               </button>
               {mostrarDropdown && (
                 <div style={{
-                  position: "absolute",
-                  background: "#fff",
-                  border: "1px solid #ccc",
-                  padding: "10px 12px",
-                  borderRadius: "6px",
-                  zIndex: 10,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  maxHeight: "250px",
-                  overflowY: "auto",
-                  minWidth: "200px",
-                  textAlign: "left",
+                  position: "absolute", background: "#fff", border: "1px solid #ccc", padding: "10px 12px",
+                  borderRadius: "6px", zIndex: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  maxHeight: "250px", overflowY: "auto", minWidth: "200px", textAlign: "left"
                 }}>
                   {[{ name: "Seleccionar todo", isAll: true }, ...AREAS.map((name) => ({ name }))].map((item) => (
-                    <label
-                      key={item.name}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "20px 1fr",
-                        alignItems: "center",
-                        marginBottom: "8px",
-                        gap: "8px",
-                        cursor: "pointer",
-                      }}
-                    >
+                    <label key={item.name} style={{ display: "grid", gridTemplateColumns: "20px 1fr", alignItems: "center", marginBottom: "8px", gap: "8px", cursor: "pointer" }}>
                       <input
                         type="checkbox"
-                        checked={
-                          item.isAll
-                            ? areasSeleccionadas.length === AREAS.length
-                            : areasSeleccionadas.includes(item.name)
-                        }
-                        onChange={() =>
-                          item.isAll ? toggleSeleccionarTodo() : toggleArea(item.name)
-                        }
+                        checked={item.isAll ? areasSeleccionadas.length === AREAS.length : areasSeleccionadas.includes(item.name)}
+                        onChange={() => item.isAll ? toggleSeleccionarTodo() : toggleArea(item.name)}
                       />
                       <span>{item.name}</span>
                     </label>
@@ -161,6 +123,7 @@ const Reporte = () => {
               )}
             </div>
 
+            {/* Orden */}
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
               <label>Orden por cantidad</label>
               <select value={ordenCantidad} onChange={(e) => setOrdenCantidad(e.target.value)} style={{ width: "200px", padding: "5px" }}>
@@ -172,6 +135,7 @@ const Reporte = () => {
           </div>
         )}
 
+        {/* Tabla */}
         <div style={{ overflowX: "auto" }}>
           <table className="manifiesto-tabla" style={{ margin: "auto", backgroundColor: "white", minWidth: "1200px" }}>
             <thead>
@@ -192,7 +156,7 @@ const Reporte = () => {
               </tr>
             </thead>
             <tbody>
-              {datosFiltrados.map((fila, index) => (
+              {datosPaginados.map((fila, index) => (
                 <tr key={index}>
                   <td>{fila["Nombre del residuo"]}</td>
                   <td>{fila["Tipo de contenedor "]}</td>
@@ -211,6 +175,64 @@ const Reporte = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Paginación */}
+        <div
+          style={{
+            marginTop: "20px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "4px",
+            flexWrap: "nowrap",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {[1, 2, 3, 4].map((num) =>
+            num <= totalPaginas ? (
+              <button
+                key={num}
+                onClick={() => setPaginaActual(num)}
+                style={{
+                  width: "24px", height: "24px", fontSize: "12px", borderRadius: "4px",
+                  background: paginaActual === num ? "#1a73e8" : "transparent",
+                  color: paginaActual === num ? "#fff" : "#1a73e8",
+                  border: "none", fontWeight: paginaActual === num ? "bold" : "normal",
+                  cursor: "pointer", padding: "0"
+                }}
+              >
+                {num}
+              </button>
+            ) : null
+          )}
+          {totalPaginas > 5 && <span style={{ fontSize: "12px", color: "#555" }}>...</span>}
+          {totalPaginas > 4 && (
+            <button
+              onClick={() => setPaginaActual(totalPaginas)}
+              style={{
+                width: "24px", height: "24px", fontSize: "12px", borderRadius: "4px",
+                background: paginaActual === totalPaginas ? "#1a73e8" : "transparent",
+                color: paginaActual === totalPaginas ? "#fff" : "#1a73e8",
+                border: "none", fontWeight: paginaActual === totalPaginas ? "bold" : "normal",
+                cursor: "pointer", padding: "0"
+              }}
+            >
+              {totalPaginas}
+            </button>
+          )}
+          {paginaActual < totalPaginas && (
+            <button
+              onClick={() => setPaginaActual(paginaActual + 1)}
+              style={{
+                width: "24px", height: "24px", fontSize: "12px", borderRadius: "4px",
+                background: "transparent", color: "#1a73e8", border: "none",
+                cursor: "pointer", padding: "0"
+              }}
+            >
+              &gt;
+            </button>
+          )}
         </div>
       </main>
     </div>

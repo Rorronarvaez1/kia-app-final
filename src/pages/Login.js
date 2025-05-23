@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "../App.css";
+import axios from 'axios';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -9,17 +10,23 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const validUsername = 'admin';
-  const validPassword = '1234';
+  const handleSubmit = async (event) => {
+  event.preventDefault();
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (username === validUsername && password === validPassword) {
-      navigate('/dashboard');
-    } else {
-      setError('Usuario o contraseña incorrectos.');
-    }
-  };
+  try {
+    const response = await axios.post('http://localhost:4000/api/login', {
+      numero_empleado: username,
+      contrasena: password
+    });
+
+    const { token } = response.data;
+    localStorage.setItem('token', token);
+    navigate('/dashboard');
+  } catch (err) {
+    const errorMsg = err.response?.data || 'Error al conectar con el servidor';
+    setError(errorMsg);
+  }
+};
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f4f4f4' }}>
@@ -34,7 +41,7 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <input
               type="text"
-              placeholder="Usuario"
+              placeholder="Numero de empleado"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}

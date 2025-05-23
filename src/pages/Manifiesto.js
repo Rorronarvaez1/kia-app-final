@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 
 const Manifiesto = () => {
+  const [pdfUrl, setPdfUrl] = useState(null);
+
   const handleCrearPDF = async () => {
-    // Cargar PDF plantilla
     const existingPdfBytes = await fetch("/Formato Manifiesto.pdf")
       .then(res => res.arrayBuffer());
 
@@ -12,7 +13,6 @@ const Manifiesto = () => {
     const page = pdfDoc.getPages()[0];
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Función para imprimir texto en una posición específica
     const drawText = (text, x, y) => {
       page.drawText(text, {
         x,
@@ -23,7 +23,6 @@ const Manifiesto = () => {
       });
     };
 
-    // Datos simulados de 5 residuos
     const datos = [
       ["Aceite usado", "200", "Tambor", "0.5", "kg"],
       ["Disolvente", "150", "Cont. plástico", "0.8", "kg"],
@@ -32,21 +31,31 @@ const Manifiesto = () => {
       ["Líquido refrigerante", "180", "Bidón", "0.6", "kg"]
     ];
 
-    // Coordenadas Y inicial (ajústalas a tu diseño real)
     let y = 950;
     datos.forEach((fila) => {
-      drawText(fila[0], 95, y);  // Residuo
-      drawText(fila[1], 427, y); // Capacidad
-      drawText(fila[2], 505, y); // Contenedor
-      drawText(fila[3], 580, y); // Cantidad
-      drawText(fila[4], 660, y); // Unidad
-      y -= 30; // siguiente fila
+      drawText(fila[0], 95, y);
+      drawText(fila[1], 427, y);
+      drawText(fila[2], 505, y);
+      drawText(fila[3], 580, y);
+      drawText(fila[4], 660, y);
+      y -= 30;
     });
 
-    // Guardar y descargar
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    saveAs(blob, "Manifiesto_KIA_Listo.pdf");
+
+    // Set preview URL
+    const previewUrl = URL.createObjectURL(blob);
+    setPdfUrl(previewUrl);
+
+    // Optional: download automatically
+    // saveAs(blob, "Manifiesto_KIA_Listo.pdf");
+  };
+
+  const handleDownload = () => {
+    if (pdfUrl) {
+      saveAs(pdfUrl, "Manifiesto_KIA_Listo.pdf");
+    }
   };
 
   return (
@@ -65,6 +74,16 @@ const Manifiesto = () => {
       <main className="content">
         <h1>Manifiesto de Residuos</h1>
         <button onClick={handleCrearPDF}>Crear Manifiesto (PDF)</button>
+        {pdfUrl && (
+          <>
+            <h2>Vista previa del PDF</h2>
+              <object data={pdfUrl} type="application/pdf" width="100%" height="600px">
+                <p>No se puede mostrar el PDF. <a href={pdfUrl}>Descargar PDF</a>.</p>
+              </object>
+            <br />
+            <button onClick={handleDownload}>Descargar PDF</button>
+          </>
+        )}
       </main>
     </div>
   );
